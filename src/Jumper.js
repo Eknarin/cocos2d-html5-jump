@@ -6,12 +6,19 @@ var Jumper = cc.Sprite.extend({
         this.x = x;
         this.y = y;
 
+        this.init();
+        
+        this.updateSpritePosition();
+    },
+
+    init: function() {
+
         this.maxVx = 8;
         this.accX = 0.25;
         this.backAccX = 0.5;
         this.jumpV = 20;
         this.g = -1;
-        
+
         this.vx = 0;
         this.vy = 0;
 
@@ -23,7 +30,6 @@ var Jumper = cc.Sprite.extend({
 
         this.blocks = [];
 
-        this.updateSpritePosition();
     },
 
     updateSpritePosition: function() {
@@ -66,6 +72,10 @@ var Jumper = cc.Sprite.extend({
                 this.accelerateX( -1 );
             }
         }
+      this.checkXBounding();
+    },
+
+    checkXBounding: function() {
         this.x += this.vx;
         if ( this.x < 0 ) {
             this.x += screenWidth;
@@ -79,15 +89,19 @@ var Jumper = cc.Sprite.extend({
         if ( this.ground ) {
             this.vy = 0;
             if ( this.jump ) {
-                this.vy = this.jumpV;
-                this.y = this.ground.getTopY() + this.vy;
-                this.ground = null;
+                this.jumping();
             }
         } else {
             this.vy += this.g;
             this.y += this.vy;
         }
     },
+
+    jumping : function(){
+        this.vy = this.jumpV;
+        this.y = this.ground.getTopY() + this.vy;
+        this.ground = null;
+    }
 
     isSameDirection: function( dir ) {
         return ( ( ( this.vx >=0 ) && ( dir >= 0 ) ) ||
@@ -96,18 +110,29 @@ var Jumper = cc.Sprite.extend({
 
     accelerateX: function( dir ) {
         if ( this.isSameDirection( dir ) ) {
-            this.vx += dir * this.accX;
-            if ( Math.abs( this.vx ) > this.maxVx ) {
-                this.vx = dir * this.maxVx;
-            }
+           this.accelerate_same_directionX();
         } else {
-            if ( Math.abs( this.vx ) >= this.backAccX ) {
-                this.vx += dir * this.backAccX;
-            } else {
-                this.vx = 0;
-            }
+            this.accelerate_different_directionX();
         }
     },
+
+    accelerate_same_directionX : function(){
+         this.vx += dir * this.accX;
+        if ( Math.abs( this.vx ) > this.maxVx ) {
+            this.vx = dir * this.maxVx;
+        }
+    },
+
+    accelerate_different_directionX : function(){
+        
+        if ( Math.abs( this.vx ) >= this.backAccX ) {
+                this.vx += dir * this.backAccX;
+        } else {
+                this.vx = 0;
+        }
+    },
+
+
     
     autoDeaccelerateX: function() {
         if ( Math.abs( this.vx ) < this.accX ) {
